@@ -1,0 +1,6 @@
+__pycache__/
+docker/mysql/
+.idea/vcs.xml/
+.idea/
+mysql/
+.mysql/

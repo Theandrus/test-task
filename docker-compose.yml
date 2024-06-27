@@ -1,0 +1,54 @@
+version: '3'
+
+services:
+  nginx:
+    image: nginx:1.21-alpine
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./:/home/app/web
+    ports:
+      - 1515:80
+    depends_on:
+      - web
+    networks:
+      - app
+
+  db:
+    image: mysql:8.0
+    ports:
+      - '3002:3306'
+    environment:
+       MYSQL_DATABASE: 'ai_clinic'
+       MYSQL_ROOT: 'root'
+       MYSQL_ROOT_PASSWORD: 'root'
+    volumes:
+      - ./docker/mysql/data:/var/lib/mysql
+    restart: always
+    networks:
+      - app
+
+
+  web:
+    build:
+      dockerfile: ./docker/python/Dockerfile
+      context: ./
+    volumes:
+      - .:/gunicorn ai_clinic_task
+    command: gunicorn ai_clinic_task.wsgi:application --bind 0.0.0.0:8000
+    expose:
+      - 8000
+    depends_on:
+      - db
+    links:
+      - db
+    networks:
+      - app
+    environment:
+      PYTHONUNBUFFERED: 1
+
+networks:
+  app:
+    driver: bridge
+
+volumes:
+  static-admin:
